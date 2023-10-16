@@ -5,7 +5,6 @@ from gymnasium import spaces
 from numpy.random import random
 import cv2
 import random
-import time
 
 SNAKE_LEN_GOAL = 30
 FONT = cv2.FONT_HERSHEY_SIMPLEX
@@ -79,15 +78,6 @@ class GymEnv(gym.Env):
                     (0, 255, 0),
                     3,
                 )
-
-        # Takes step after fixed time
-        # t_end = time.time() + 0.1
-        # k = -1
-        # while time.time() < t_end:
-        #     if k == -1:
-        #         k = cv2.waitKey(1)
-        #     else:
-        #         continue
 
         button_direction = action
         # Change the head position based on the button direction
