@@ -6,7 +6,7 @@ from numpy.random import random
 import cv2
 import random
 
-SNAKE_LEN_GOAL = 30
+SNAKE_LEN_GOAL = 100
 FONT = cv2.FONT_HERSHEY_SIMPLEX
 
 
@@ -18,8 +18,31 @@ class GymEnv(gym.Env):
         self.env_id = env_id
 
         self.action_space = spaces.Discrete(4)
-        self.observation_space = spaces.Box(
-            low=-500, high=500, shape=(5 + SNAKE_LEN_GOAL,), dtype=np.int64
+
+        coords_min = -500
+        coords_max = 500
+        snake_length_min = 3
+        snake_length_max = 100
+
+        self.observation_space = spaces.Dict(
+            {
+                "head_position": spaces.Box(
+                    low=np.array([coords_min, coords_min]),
+                    high=np.array([coords_max, coords_max]),
+                    dtype=np.int64,
+                ),
+                "apple_delta_position": spaces.Box(
+                    low=np.array([coords_min, coords_min]),
+                    high=np.array([coords_max, coords_max]),
+                    dtype=np.int64,
+                ),
+                "snake_length": spaces.Box(
+                    low=snake_length_min, high=snake_length_max, dtype=np.int64
+                ),
+                "previous_actions": spaces.Box(
+                    low=-1, high=3, shape=(100,), dtype=np.int64
+                ),
+            }
         )
 
     def reset(self, seed=None, options=None):
@@ -37,11 +60,9 @@ class GymEnv(gym.Env):
         self.snake_head = [250, 250]
         self.total_reward = 0.0
 
-        self.prev_actions = Deque(
-            maxlen=SNAKE_LEN_GOAL
-        )  # however long we aspire the snake to be
+        self.prev_actions = Deque(maxlen=SNAKE_LEN_GOAL)
         for _ in range(SNAKE_LEN_GOAL):
-            self.prev_actions.append(-1)  # to create history
+            self.prev_actions.append(-1)
 
         observation = self.get_observation()
 
@@ -108,7 +129,7 @@ class GymEnv(gym.Env):
             ) or abs(self.snake_head[1] - self.apple_position[1]) < abs(
                 prev_snake_head[1] - self.apple_position[1]
             ):
-                reward += 0.05
+                reward += 0.025
 
         # On collision kill the snake and print the score
         if (
@@ -159,15 +180,14 @@ class GymEnv(gym.Env):
         apple_delta_x = self.apple_position[0] - head_x
         apple_delta_y = self.apple_position[1] - head_y
 
-        observation = [
-            head_x,
-            head_y,
-            apple_delta_x,
-            apple_delta_y,
-            snake_length,
-        ] + list(self.prev_actions)
+        observation = {
+            "head_position": np.array([head_x, head_y]),
+            "apple_delta_position": np.array([apple_delta_x, apple_delta_y]),
+            "snake_length": np.array([snake_length]),
+            "previous_actions": np.array(self.prev_actions),
+        }
 
-        return np.array(observation)
+        return observation
 
 
 # region Helper functions

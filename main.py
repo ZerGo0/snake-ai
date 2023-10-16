@@ -45,7 +45,7 @@ if __name__ == "__main__":
         save_freq=10000, save_path="./ai_model", name_prefix=env_id
     )
 
-    model = PPO("MlpPolicy", env, verbose=1, tensorboard_log="./tensorboard/")
+    model = PPO("MultiInputPolicy", env, verbose=1, tensorboard_log="./tensorboard/")
 
     model.learn(
         total_timesteps=200_000_000,
